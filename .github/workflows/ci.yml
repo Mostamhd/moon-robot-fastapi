@@ -1,0 +1,55 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install UV
+        run: pip install uv
+
+      - name: Install dependencies
+        run:  uv sync
+
+      - name: Lint with Ruff
+        run: . .venv/bin/activate && ruff check .
+
+      - name: Type checking with mypy
+        run: |
+          . .venv/bin/activate
+          mypy src
+
+      - name: Run tests
+        env:
+          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+        run: |
+          . .venv/bin/activate
+          pytest
