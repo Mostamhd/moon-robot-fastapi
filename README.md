@@ -43,7 +43,7 @@ This API controls a robot on the Moon, translating commands from Earth to instru
 4. Start PostgreSQL locally (using your preferred method)
 5. Run the application:
    ```bash
-   uv run uvicorn robot.main:app --reload
+   uv run uvicorn src.main:app --reload
    ```
 
 ## API Endpoints
@@ -136,6 +136,29 @@ This project uses comprehensive quality checks:
 
 All code must pass these checks before merging.
 
+## Database Migrations
+
+This project uses Alembic for database migrations. See [alembic/README.md](alembic/README.md) for detailed information on how to work with migrations.
+
+For development, it's recommended to run migrations using Docker to ensure consistency with the development environment:
+
+```bash
+# Apply all pending migrations
+docker-compose -f docker/docker-compose.yml exec api alembic upgrade head
+
+# Check current revision
+docker-compose -f docker/docker-compose.yml exec api alembic current
+
+# Create a new migration
+docker-compose -f docker/docker-compose.yml exec api alembic revision --autogenerate -m "Description of changes"
+```
+
+After creating new migration files, you'll need to rebuild the Docker containers to include these files:
+
+```bash
+docker-compose -f docker/docker-compose.yml up --build -d
+```
+
 ## Development Workflow
 
 1. Make changes to the code
@@ -144,6 +167,38 @@ All code must pass these checks before merging.
 4. Check types: `uv run mypy .`
 5. Commit changes with conventional commits
 
+## Pre-commit Hooks
+
+This project uses pre-commit hooks to ensure code quality and consistency. The hooks automatically run:
+
+- Ruff for Python linting and formatting
+- mypy for static type checking
+- Various checks for YAML files, trailing whitespace, etc.
+
+### Installation
+
+To install and set up pre-commit hooks:
+
+1. Install pre-commit (if not already installed):
+   ```bash
+   uv add pre-commit
+   ```
+
+2. Install the git hook scripts:
+   ```bash
+   uv pre-commit install
+   ```
+
+### Usage
+
+The pre-commit hooks will automatically run on every commit. You can also manually run them on all files:
+
+```bash
+uv run pre-commit run --all-files
+```
+
+If any hooks fail, fix the issues and try committing again. Some hooks (like Ruff) may automatically fix issues, so you might just need to stage the fixed files and commit again.
+
 ## Configuration
 
 The robot can be configured using environment variables:
@@ -151,13 +206,3 @@ The robot can be configured using environment variables:
 - `START_POSITION`: Initial position as "(x, y)" (default: "(0, 0)")
 - `START_DIRECTION`: Initial direction (NORTH, SOUTH, EAST, WEST) (default: "NORTH")
 - `DATABASE_URL`: PostgreSQL connection string
-
-## Mission Critical Considerations
-
-This API controls a robot on the Moon where "you will have no direct access to the robot once on the Moon." Therefore:
-
-- Strict type checking is enforced
-- Comprehensive testing ensures reliability
-- Database tracking provides audit trail
-- Obstacle detection prevents mission failure
-- Clear API documentation enables proper usage

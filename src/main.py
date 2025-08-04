@@ -9,7 +9,6 @@ from src.services.database import engine
 from src.services.init_db import init_db as initialize_database
 from src.settings import settings
 
-# Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -20,9 +19,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Handle application startup and shutdown events"""
-    # Startup
     logger.info("Starting Moon Robot API")
-    # Initialize database with default data
     try:
         await initialize_database()
         logger.info("Database initialization complete")
@@ -32,7 +29,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     yield
 
-    # Shutdown
     logger.info("Shutting down Moon Robot API")
     await engine.dispose()
     logger.info("Database engine disposed")
@@ -45,5 +41,4 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Include API routes
 app.include_router(api_router, prefix=settings.API_V1_STR)
