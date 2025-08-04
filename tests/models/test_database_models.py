@@ -3,7 +3,9 @@ from datetime import datetime
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from src.models.database import CommandHistory, Obstacle, RobotState
+from src.models.command_history import CommandHistory
+from src.models.obstacle import Obstacle
+from src.models.robot_state import RobotState
 
 
 @pytest.mark.asyncio
