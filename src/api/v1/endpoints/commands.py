@@ -13,7 +13,6 @@ from src.services.command_processor import CommandProcessor
 from src.services.database import get_db
 from src.settings import settings
 
-# Set up logger
 logger = logging.getLogger(__name__)
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
@@ -37,14 +36,12 @@ async def execute_commands(request: CommandRequest, db: DBSession) -> CommandRes
     Execute a string of commands and return the final position.
     """
     try:
-        # Validate command string
-        if len(request.command) > 1000:  # Limit command length
+        if len(request.command) > 1000:
             raise HTTPException(status_code=400, detail="Command string too long")
 
-        # Get the latest robot state from database
         stmt = select(RobotState).order_by(RobotState.updated_at.desc()).limit(1)
         result = await db.execute(stmt)
-        robot_state = result.scalars().first()  # Properly typed as Optional[RobotState]
+        robot_state = result.scalars().first()
 
         if not robot_state:
             start_position = settings.start_position

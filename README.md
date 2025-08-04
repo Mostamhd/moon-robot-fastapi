@@ -43,7 +43,7 @@ This API controls a robot on the Moon, translating commands from Earth to instru
 4. Start PostgreSQL locally (using your preferred method)
 5. Run the application:
    ```bash
-   uv run uvicorn robot.main:app --reload
+   uv run uvicorn src.main:app --reload
    ```
 
 ## API Endpoints
@@ -135,6 +135,29 @@ This project uses comprehensive quality checks:
 - GitHub Actions for CI/CD pipeline
 
 All code must pass these checks before merging.
+
+## Database Migrations
+
+This project uses Alembic for database migrations. See [alembic/README.md](alembic/README.md) for detailed information on how to work with migrations.
+
+For development, it's recommended to run migrations using Docker to ensure consistency with the development environment:
+
+```bash
+# Apply all pending migrations
+docker-compose -f docker/docker-compose.yml exec api alembic upgrade head
+
+# Check current revision
+docker-compose -f docker/docker-compose.yml exec api alembic current
+
+# Create a new migration
+docker-compose -f docker/docker-compose.yml exec api alembic revision --autogenerate -m "Description of changes"
+```
+
+After creating new migration files, you'll need to rebuild the Docker containers to include these files:
+
+```bash
+docker-compose -f docker/docker-compose.yml up --build -d
+```
 
 ## Development Workflow
 
