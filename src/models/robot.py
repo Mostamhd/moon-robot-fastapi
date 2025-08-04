@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, NamedTuple
+from typing import NamedTuple
 
 
 class Direction(str, Enum):
@@ -82,32 +82,3 @@ class Robot:
             self.rotate_right()
             return False
         return False
-
-    def execute_commands(
-        self, commands: str, obstacles: set[Position] | None = None
-    ) -> dict[str, Any]:
-        if obstacles is None:
-            obstacles = set()
-
-        for command in commands:
-            prev_position = self.position
-
-            # Process the command
-            moved = self.process_command(command)
-
-            # Check for obstacles only if we moved
-            if moved and self.position in obstacles:
-                # Revert to previous position
-                self.position = prev_position
-                self.obstacle_detected = True
-                return {
-                    "position": {"x": self.position.x, "y": self.position.y},
-                    "direction": self.direction,
-                    "obstacle_detected": True,
-                }
-
-        return {
-            "position": {"x": self.position.x, "y": self.position.y},
-            "direction": self.direction,
-            "obstacle_detected": self.obstacle_detected,
-        }
