@@ -6,13 +6,12 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.main import app
-from src.models.database import Base
+from src.models.base import Base
 from src.services.database import get_db
 
 
 @pytest.fixture(scope="session")
 def test_engine():
-    """Create a test sync database engine"""
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -73,3 +72,24 @@ async def client(async_db_session):
         yield ac
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def robot_state_factory():
+    from tests.factories import RobotStateFactory
+
+    return RobotStateFactory
+
+
+@pytest.fixture
+def command_history_factory():
+    from tests.factories import CommandHistoryFactory
+
+    return CommandHistoryFactory
+
+
+@pytest.fixture
+def obstacle_factory():
+    from tests.factories import ObstacleFactory
+
+    return ObstacleFactory

@@ -1,6 +1,7 @@
 import pytest
 
-from src.models.robot import Direction, Robot
+from src.models.robot import Direction, Position, Robot
+from src.services.robot_service import RobotCommandExecutor
 
 
 def test_robot_initialization():
@@ -102,7 +103,8 @@ def test_process_invalid_command():
 
 def test_execute_commands_simple():
     robot = Robot((0, 0), Direction.NORTH)
-    result = robot.execute_commands("FF")
+    executor = RobotCommandExecutor()
+    result = executor.execute_commands(robot, "FF")
     assert result["position"] == {"x": 0, "y": 2}
     assert result["direction"] == Direction.NORTH
     assert result["obstacle_detected"] is False
@@ -110,7 +112,8 @@ def test_execute_commands_simple():
 
 def test_execute_commands_complex():
     robot = Robot((0, 0), Direction.NORTH)
-    result = robot.execute_commands("FFRFLB")
+    executor = RobotCommandExecutor()
+    result = executor.execute_commands(robot, "FFRFLB")
     assert result["position"] == {"x": 1, "y": 1}
     assert result["direction"] == Direction.NORTH
     assert result["obstacle_detected"] is False
@@ -118,9 +121,9 @@ def test_execute_commands_complex():
 
 def test_execute_commands_with_obstacle():
     robot = Robot((0, 0), Direction.NORTH)
-    from src.models.robot import Position
+    executor = RobotCommandExecutor()
 
-    result = robot.execute_commands("F", obstacles={Position(0, 1)})
+    result = executor.execute_commands(robot, "F", obstacles={Position(0, 1)})
     assert result["position"] == {"x": 0, "y": 0}
     assert result["direction"] == Direction.NORTH
     assert result["obstacle_detected"] is True
@@ -128,9 +131,9 @@ def test_execute_commands_with_obstacle():
 
 def test_execute_commands_obstacle_mid_sequence():
     robot = Robot((0, 0), Direction.NORTH)
-    from src.models.robot import Position
+    executor = RobotCommandExecutor()
 
-    result = robot.execute_commands("FFFR", obstacles={Position(0, 2)})
+    result = executor.execute_commands(robot, "FFFR", obstacles={Position(0, 2)})
     assert result["position"] == {"x": 0, "y": 1}
     assert result["direction"] == Direction.NORTH
     assert result["obstacle_detected"] is True
@@ -138,7 +141,8 @@ def test_execute_commands_obstacle_mid_sequence():
 
 def test_execute_empty_commands():
     robot = Robot((5, 3), Direction.EAST)
-    result = robot.execute_commands("")
+    executor = RobotCommandExecutor()
+    result = executor.execute_commands(robot, "")
     assert result["position"] == {"x": 5, "y": 3}
     assert result["direction"] == Direction.EAST
     assert result["obstacle_detected"] is False
@@ -146,7 +150,8 @@ def test_execute_empty_commands():
 
 def test_execute_commands_with_invalid_characters():
     robot = Robot((0, 0), Direction.NORTH)
-    result = robot.execute_commands("FXF")
+    executor = RobotCommandExecutor()
+    result = executor.execute_commands(robot, "FXF")
     assert result["position"] == {"x": 0, "y": 2}
     assert result["direction"] == Direction.NORTH
     assert result["obstacle_detected"] is False

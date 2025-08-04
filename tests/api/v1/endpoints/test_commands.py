@@ -1,8 +1,8 @@
-# test_commands.py
 import pytest
 from sqlalchemy import select
 
-from src.models.database import CommandHistory, Obstacle
+from src.models.command_history import CommandHistory
+from tests.factories import ObstacleFactory
 
 
 @pytest.mark.asyncio
@@ -27,8 +27,7 @@ async def test_execute_commands_with_rotation(client):
 
 @pytest.mark.asyncio
 async def test_execute_commands_with_obstacle(client, async_db_session):
-    # Insert an obstacle at (0,2)
-    obstacle = Obstacle(position_x=0, position_y=2)
+    obstacle = ObstacleFactory(position_x=0, position_y=2)
 
     async_db_session.add(obstacle)
     await async_db_session.commit()
@@ -37,7 +36,7 @@ async def test_execute_commands_with_obstacle(client, async_db_session):
     response = await client.post("/api/v1/commands", json={"command": "FFF"})
     assert response.status_code == 200
     data = response.json()
-    # Robot stops before obstacle at (0,2), so final pos is (0,1)
+
     assert data["position"] == {"x": 0, "y": 1}
     assert data["direction"] == "NORTH"
     assert data["obstacle_detected"] is True
