@@ -144,6 +144,38 @@ All code must pass these checks before merging.
 4. Check types: `uv run mypy .`
 5. Commit changes with conventional commits
 
+## Pre-commit Hooks
+
+This project uses pre-commit hooks to ensure code quality and consistency. The hooks automatically run:
+
+- Ruff for Python linting and formatting
+- mypy for static type checking
+- Various checks for YAML files, trailing whitespace, etc.
+
+### Installation
+
+To install and set up pre-commit hooks:
+
+1. Install pre-commit (if not already installed):
+   ```bash
+   uv add pre-commit
+   ```
+
+2. Install the git hook scripts:
+   ```bash
+   uv pre-commit install
+   ```
+
+### Usage
+
+The pre-commit hooks will automatically run on every commit. You can also manually run them on all files:
+
+```bash
+uv run pre-commit run --all-files
+```
+
+If any hooks fail, fix the issues and try committing again. Some hooks (like Ruff) may automatically fix issues, so you might just need to stage the fixed files and commit again.
+
 ## Configuration
 
 The robot can be configured using environment variables:
