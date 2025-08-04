@@ -1,0 +1,163 @@
+# Moon Robot API
+
+## Overview
+This API controls a robot on the Moon, translating commands from Earth to instructions the robot understands.
+
+## Requirements
+- Python 3.11+
+- Docker 20.10+
+- PostgreSQL 15+
+
+## Setup
+
+### Local Development with Docker
+
+1. Ensure Docker and Docker Compose are installed
+2. Start the services:
+   ```bash
+   docker-compose -f docker/docker-compose.yml up --build
+   ```
+3. The API will be available at http://localhost:8000
+4. API documentation:
+   - Swagger UI: http://localhost:8000/docs
+   - ReDoc: http://localhost:8000/redoc
+
+### Local Development without Docker
+
+1. Install UV:
+   ```bash
+   pip install uv
+   ```
+2. Create virtual environment and install dependencies:
+   ```bash
+   uv venv
+   . .venv/bin/activate
+   uv sync
+   ```
+3. Set up environment variables:
+   ```bash
+   echo "DATABASE_URL=postgresql+asyncpg://robotuser:robotpass@localhost:5432/moonrobot" > .env
+   echo "START_POSITION=(0, 0)" >> .env
+   echo "START_DIRECTION=NORTH" >> .env
+   ```
+4. Start PostgreSQL locally (using your preferred method)
+5. Run the application:
+   ```bash
+   uv run uvicorn robot.main:app --reload
+   ```
+
+## API Endpoints
+
+### GET /api/v1/status
+Returns the current position and direction of the robot.
+
+Example response:
+```json
+{
+  "position": {"x": 0, "y": 0},
+  "direction": "NORTH"
+}
+```
+
+### POST /api/v1/commands
+Executes a command string and returns the final position.
+
+Request body:
+```json
+{
+  "command": "FLFFFRFLB"
+}
+```
+
+Example response:
+```json
+{
+  "position": {"x": -1, "y": 3},
+  "direction": "NORTH",
+  "obstacle_detected": false
+}
+```
+
+When an obstacle is detected:
+```json
+{
+  "position": {"x": 0, "y": 3},
+  "direction": "WEST",
+  "obstacle_detected": true,
+}
+```
+
+## Testing
+
+### Running Tests
+```bash
+uv run pytest
+```
+
+### Testing the API Manually
+
+1. Check initial status:
+   ```bash
+   curl http://localhost:8000/api/v1/status
+   ```
+
+2. Send movement commands:
+   ```bash
+   curl -X POST http://localhost:8000/api/v1/commands \
+     -H "Content-Type: application/json" \
+     -d '{"command": "F"}'
+   ```
+
+3. Verify new position:
+   ```bash
+   curl http://localhost:8000/api/v1/status
+   ```
+
+4. Test obstacle detection (start at position (0,3) facing north):
+   ```bash
+   # To test from a specific position, restart the application with new environment variables:
+   # START_POSITION="(0,3)" START_DIRECTION="NORTH" uvicorn src.main:app --reload
+
+   # Try to move into obstacle at (0,4)
+   curl -X POST http://localhost:8000/api/v1/commands \
+     -H "Content-Type: application/json" \
+     -d '{"command": "F"}'
+   ```
+   This should return with "obstacle_detected": true
+
+## Code Quality
+
+This project uses comprehensive quality checks:
+
+- Ruff for Python linting and formatting
+- mypy for static type checking
+- Pre-commit hooks for automatic quality checks
+- GitHub Actions for CI/CD pipeline
+
+All code must pass these checks before merging.
+
+## Development Workflow
+
+1. Make changes to the code
+2. Run tests: `uv run pytest`
+3. Check linting: `uv run ruff check .`
+4. Check types: `uv run mypy .`
+5. Commit changes with conventional commits
+
+## Configuration
+
+The robot can be configured using environment variables:
+
+- `START_POSITION`: Initial position as "(x, y)" (default: "(0, 0)")
+- `START_DIRECTION`: Initial direction (NORTH, SOUTH, EAST, WEST) (default: "NORTH")
+- `DATABASE_URL`: PostgreSQL connection string
+
+## Mission Critical Considerations
+
+This API controls a robot on the Moon where "you will have no direct access to the robot once on the Moon." Therefore:
+
+- Strict type checking is enforced
+- Comprehensive testing ensures reliability
+- Database tracking provides audit trail
+- Obstacle detection prevents mission failure
+- Clear API documentation enables proper usage
